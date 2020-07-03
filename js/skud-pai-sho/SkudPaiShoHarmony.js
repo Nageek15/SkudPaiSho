@@ -149,6 +149,32 @@ SkudPaiShoHarmony.prototype.crossesCenter = function() {
 	}
 };
 
+SkudPaiShoHarmony.prototype.onCenterLine = function() {
+	var rowHigh = this.tile1Pos.row;
+	var rowLow = this.tile2Pos.row;
+	var colHigh = this.tile1Pos.col;
+	var colLow = this.tile2Pos.col;
+	
+	if (this.tile1Pos.row < this.tile2Pos.row) {
+		rowHigh = this.tile2Pos.row;
+		rowLow = this.tile1Pos.row;
+	}
+
+	if (rowHigh !== rowLow) {
+		return colHigh===8;
+	}
+
+	
+	if (this.tile1Pos.col < this.tile2Pos.col) {
+		colHigh = this.tile2Pos.col;
+		colLow = this.tile1Pos.col;
+	}
+
+	if (colHigh !== colLow) {
+		return rowHigh===8;
+	}
+};
+
 
 // --------------------------------------------- // 
 
@@ -243,6 +269,18 @@ SkudPaiShoHarmonyManager.prototype.getNumCrossingCenterForPlayer = function(play
 	for (var i = 0; i < this.harmonies.length; i++) {
 		if (this.harmonies[i].hasOwner(player)) {
 			if (this.harmonies[i].crossesCenter()) {
+				count++;
+			}
+		}
+	}
+	return count;
+};
+
+SkudPaiShoHarmonyManager.prototype.getNumCrossingCenterButNotAlongForPlayer = function(player) {
+	var count = 0;
+	for (var i = 0; i < this.harmonies.length; i++) {
+		if (this.harmonies[i].hasOwner(player)) {
+			if (this.harmonies[i].crossesCenter()&&!(this.harmonies[i].onCenterLine())) {
 				count++;
 			}
 		}

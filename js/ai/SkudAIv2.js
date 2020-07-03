@@ -6,7 +6,7 @@ function SkudAIv2() {
 	this.greatScoreThreshold.set(2, 9);
 	this.greatScoreThreshold.set(1, 18);
 	this.greatScoreThreshold.set(0, 16);
-	this.stance=0;
+	this.stance=Math.floor(Math.random() * 3);
 	//stance 0 - defensive
 	//stance 1 - neutral
 	//stance 2 - offensive
@@ -61,13 +61,14 @@ SkudAIv2.prototype.getMove = function(game, moveNum) {
 
 	/*if (goodMove) {
 		// debug("Score: " + goodScore);
-		this.ensurePlant(goodMove, game, this.player);
+		
 		return goodMove;
 	}*/
 
 	
 
 	//return randomMove;
+	this.ensurePlant(bestMove, game, this.player);
 	return bestMove;
 };
 
@@ -158,18 +159,46 @@ SkudAIv2.prototype.calculateScore = function(origGame, copyGame) {
 	var moreHarmonies = after > before;
 	if (after > before) {
 		score += 20;
+		if (this.stance===0){
+			score+=10;
+		}
 	} else if (after < before) {
 		score -= 20;
+		if (this.stance===0){
+			score-=10;
+		}
 	}
 
 	// Harmonies that cross the center are better!
 	before = this.getNumHamoniesCrossingCenter(origGame, this.player);
 	after = this.getNumHamoniesCrossingCenter(copyGame, this.player);
-
+	
 	if (after > before) {
-		score += 50;
+		score += 40;
+		if (this.stance===0){
+			score+=5;
+		}
 	} else if (after < before) {
 		score -= 20;
+		if (this.stance===0){
+			score-=5;
+		}
+	}
+	
+	// Harmonies that cross the center and are better!
+	before = this.getNumHamoniesCrossingCenterButNotAlong(origGame, this.player);
+	after = this.getNumHamoniesCrossingCenterButNotAlong(copyGame, this.player);
+	
+	if (after > before) {
+		score += 10;
+		if (this.stance===0){
+			score+=5;
+		}
+	} else if (after < before) {
+		score -= 50;
+		if (this.stance===0){
+			score-=5;
+		}
 	}
 
 	// Check number of opponent harmonies, decrease is good
@@ -179,8 +208,14 @@ SkudAIv2.prototype.calculateScore = function(origGame, copyGame) {
 	var opponentLessHarmonies = after < before;
 	if (after < before) {
 		score += 3;
+		if (this.stance===2){
+			score+=17;
+		}
 	} else if (after > before) {
 		score -= 7;
+		if (this.stance===2){
+			score-=13;
+		}
 	}
 
 	// Check tiles in red/white gardens, increase is good
@@ -189,7 +224,11 @@ SkudAIv2.prototype.calculateScore = function(origGame, copyGame) {
 
 	var moreHomeTiles = after > before;
 	if (after > before) {
+		
 		score += 10;
+		if (this.stance===0){
+			score+=15;
+		}
 	} else if (after < before) {
 		score -= 10;
 	}
@@ -201,6 +240,9 @@ SkudAIv2.prototype.calculateScore = function(origGame, copyGame) {
 	var opponentLessTiles = after < before;
 	if (after < before) {
 		score += 8;
+		if (this.stance===2){
+			score+=10;
+		}
 	}
 
 	// Tiles on left/right/top/bottom of center
@@ -237,6 +279,9 @@ SkudAIv2.prototype.calculateScore = function(origGame, copyGame) {
 
 	if (after > before) {
 		score += 5;
+		if (this.stance===1){
+			score+=10;
+		}
 	}
 
 	// return score / ((this.scoreDepth - depth) + 1);
@@ -492,6 +537,10 @@ SkudAIv2.prototype.getNumHamoniesCrossingCenter = function(game, player) {
 	return game.board.harmonyManager.getNumCrossingCenterForPlayer(player);
 };
 
+SkudAIv2.prototype.getNumHamoniesCrossingCenterButNotAlong = function(game, player) {
+	return game.board.harmonyManager.getNumCrossingCenterButNotAlongForPlayer(player);
+};
+
 SkudAIv2.prototype.ensurePlant = function(move, game, player) {
 	if (move.moveType !== ARRANGING) {
 		return;
@@ -522,3 +571,8 @@ SkudAIv2.prototype.ensurePlant = function(move, game, player) {
 	move.bonusEndPoint = "(" + this.getNotation(randomEndPoint) + ")";
 	move.fullMoveText += "+" + move.bonusTileCode + move.bonusEndPoint;
 };
+
+//TODO
+/*SkudAIv2.prototype.calculatePlantScore(move,game,player){
+	if (move.plantedFlowerType
+};*/
