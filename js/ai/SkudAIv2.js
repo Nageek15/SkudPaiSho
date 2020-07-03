@@ -1,68 +1,77 @@
-// SkudAIv1
+// SkudAIv2
 
-function SkudAIv1() {
+function SkudAIv2() {
 	this.scoreDepth = 1;	// This can't go higher than 1... Or can it?
 	this.greatScoreThreshold = new Map();
 	this.greatScoreThreshold.set(2, 9);
 	this.greatScoreThreshold.set(1, 18);
 	this.greatScoreThreshold.set(0, 16);
+	this.stance=0;
+	//stance 0 - defensive
+	//stance 1 - neutral
+	//stance 2 - offensive
 }
 
-SkudAIv1.prototype.getName = function() {
-	return "Skud Pai Sho automatic opponent";
+SkudAIv2.prototype.getName = function() {
+	return "Keegan's Skud AI";
 };
 
-SkudAIv1.prototype.getMessage = function() {
-	return "Playing against the computer can help you learn how the game works. You should be able to beat the computer easily once you understand the game.<br>";
+SkudAIv2.prototype.getMessage = function() {
+	var stanceString="unknown";
+	if (this.stance===0){
+		stanceString="defensive"
+	} else if (this.stance===1){
+		stanceString="neutral"
+	} else if (this.stance===2){
+		stanceString="offensive"
+	}
+	return "Keegan's Experimental AI. Her stance is " + stanceString + ".<br>";
 };
 
-SkudAIv1.prototype.setPlayer = function(playerName) {
+SkudAIv2.prototype.setPlayer = function(playerName) {
 	this.player = playerName;
 };
 
 /* parameters will be copies of the real thing, so you can't mess up the real game. */
-SkudAIv1.prototype.getMove = function(game, moveNum) {
+SkudAIv2.prototype.getMove = function(game, moveNum) {
 	this.moveNum = moveNum;
 
 	var moves = this.getPossibleMoves(game, this.player);
 
 	// Process moves to get the best one...
-	// What makes a good move? Should I go through all moves and "score" them somehow?
+	// What makes a good move? Should I go through all moves and "score" them somehow? 
+	//Yeah! I think that sounds like a good idea for this hard coded version.
 
-	var goodMove;
-	// var goodScore = 0;
+	var randomIndex = Math.floor(Math.random() * moves.length);
+	var bestMove=moves.splice(randomIndex, 1)[0];
+	var highestScore=0;
 	var goodScores = new Map();
 	for (var moveNum = 0; moveNum < moves.length; moveNum++) {
 		var move = moves[moveNum];
-		// var score = this.getMoveScore(game, move, this.scoreDepth);
-		// if (score > 9999 || (score > goodScore && Math.random() > 0.1)) {	// Shake it up
-		// //if (score > goodScore) {
-		// 	goodScore = score;
-		// 	goodMove = move;
-		// }
 		var scores = this.getMoveScore(game, move, this.scoreDepth);
 		if (scores.get(this.scoreDepth) > 9999) {
 			return move;
 		}
-		if (Math.random() > 0.1 && this.scoreIsGood(scores, goodScores, this.scoreDepth)) {
-			goodMove = move;
-			goodScores = scores;
+		//may shake it up in the future with randomness. Also may create a chance for moves with a score equal to the highest score to become the best move
+		if (scores.getMoveScore>highestScore) {
+			bestMove = move;
+			bestScore = scores.getMoveScore;
 		}
 	}
 
-	if (goodMove) {
+	/*if (goodMove) {
 		// debug("Score: " + goodScore);
 		this.ensurePlant(goodMove, game, this.player);
 		return goodMove;
-	}
+	}*/
 
-	var randomIndex = Math.floor(Math.random() * moves.length);
-	var randomMove = moves.splice(randomIndex, 1)[0];
+	
 
-	return randomMove;
+	//return randomMove;
+	return bestMove;
 };
 
-SkudAIv1.prototype.scoreIsGood = function(scores, goodScores, depth) {
+SkudAIv2.prototype.scoreIsGood = function(scores, goodScores, depth) {
 	if (depth <= 0) {
 		debug("SCORE IS GOOD")
 		return true;
@@ -74,7 +83,7 @@ SkudAIv1.prototype.scoreIsGood = function(scores, goodScores, depth) {
 	}
 };
 
-SkudAIv1.prototype.getMoveScore = function(origGame, move, depth) {
+SkudAIv2.prototype.getMoveScore = function(origGame, move, depth) {
 	debug("Depth: " + depth);
 	
 	var copyGame = origGame.getCopy();
@@ -96,7 +105,7 @@ SkudAIv1.prototype.getMoveScore = function(origGame, move, depth) {
 	}
 };
 
-SkudAIv1.prototype.getHighestScore = function(origGame, newGame, highScore, depth) {
+SkudAIv2.prototype.getHighestScore = function(origGame, newGame, highScore, depth) {
 	// magic
 
 	if (depth <= 0) {
@@ -128,7 +137,7 @@ SkudAIv1.prototype.getHighestScore = function(origGame, newGame, highScore, dept
 	return highScore;
 };
 
-SkudAIv1.prototype.calculateScore = function(origGame, copyGame) {
+SkudAIv2.prototype.calculateScore = function(origGame, copyGame) {
 	// Simple move scoring...
 	var score = 0;
 
@@ -234,7 +243,7 @@ SkudAIv1.prototype.calculateScore = function(origGame, copyGame) {
 	return score;
 };
 
-SkudAIv1.prototype.getPossibleMoves = function(thisGame, player) {
+SkudAIv2.prototype.getPossibleMoves = function(thisGame, player) {
 	var moves = [];
 
 	if (this.moveNum === 0) {
@@ -247,7 +256,7 @@ SkudAIv1.prototype.getPossibleMoves = function(thisGame, player) {
 	return moves;
 };
 
-SkudAIv1.prototype.addAccentSelectionMoves = function(moves, game) {
+SkudAIv2.prototype.addAccentSelectionMoves = function(moves, game) {
 	/* Status: Random, working
 	*/
 
@@ -279,7 +288,7 @@ SkudAIv1.prototype.addAccentSelectionMoves = function(moves, game) {
 	moves.push(move);
 };
 
-SkudAIv1.prototype.addPlantMoves = function(moves, game, player) {
+SkudAIv2.prototype.addPlantMoves = function(moves, game, player) {
 	if (!this.isOpenGate(game)) {
 		return;
 	}
@@ -325,7 +334,7 @@ SkudAIv1.prototype.addPlantMoves = function(moves, game, player) {
 	}
 };
 
-SkudAIv1.prototype.addArrangeMoves = function(moves, game, player) {
+SkudAIv2.prototype.addArrangeMoves = function(moves, game, player) {
 	var startPoints = this.getStartPoints(game, player);
 
 	for (var i = 0; i < startPoints.length; i++) {
@@ -361,7 +370,7 @@ SkudAIv1.prototype.addArrangeMoves = function(moves, game, player) {
 	}
 };
 
-SkudAIv1.prototype.getCurrentPlayerForGame = function(game, notation) {
+SkudAIv2.prototype.getCurrentPlayerForGame = function(game, notation) {
 	if (notation.moves.length <= 1) {
 		if (notation.moves.length === 0) {
 			return HOST;
@@ -381,11 +390,11 @@ SkudAIv1.prototype.getCurrentPlayerForGame = function(game, notation) {
 	}
 };
 
-SkudAIv1.prototype.getNotation = function(boardPoint) {
+SkudAIv2.prototype.getNotation = function(boardPoint) {
 	return new RowAndColumn(boardPoint.row, boardPoint.col).notationPointString;
 };
 
-SkudAIv1.prototype.getStartPoints = function(game, player) {
+SkudAIv2.prototype.getStartPoints = function(game, player) {
 	var points = [];
 	for (var row = 0; row < game.board.cells.length; row++) {
 		for (var col = 0; col < game.board.cells[row].length; col++) {
@@ -402,7 +411,7 @@ SkudAIv1.prototype.getStartPoints = function(game, player) {
 	return points;
 };
 
-SkudAIv1.prototype.getPossibleMovePoints = function(game) {
+SkudAIv2.prototype.getPossibleMovePoints = function(game) {
 	var points = [];
 	for (var row = 0; row < game.board.cells.length; row++) {
 		for (var col = 0; col < game.board.cells[row].length; col++) {
@@ -414,7 +423,7 @@ SkudAIv1.prototype.getPossibleMovePoints = function(game) {
 	return points;
 };
 
-SkudAIv1.prototype.getBasicFlowerTileCode = function(game) {
+SkudAIv2.prototype.getBasicFlowerTileCode = function(game) {
 	var tilePile = this.getTilePile(game);
 	for (var i = 0; i < tilePile.length; i++) {
 		if (tilePile[i].type === BASIC_FLOWER) {
@@ -424,7 +433,7 @@ SkudAIv1.prototype.getBasicFlowerTileCode = function(game) {
 };
 
 
-SkudAIv1.prototype.tileContainsBasicFlower = function(tilePile) {
+SkudAIv2.prototype.tileContainsBasicFlower = function(tilePile) {
 	for (var i = 0; i < tilePile.length; i++) {
 		if (tilePile[i].type === BASIC_FLOWER) {
 			return true;
@@ -433,7 +442,7 @@ SkudAIv1.prototype.tileContainsBasicFlower = function(tilePile) {
 	return false;
 };
 
-SkudAIv1.prototype.getTilePile = function(game, player) {
+SkudAIv2.prototype.getTilePile = function(game, player) {
 	var tilePile = game.tileManager.hostTiles;
 	if (player === GUEST) {
 		tilePile = game.tileManager.guestTiles;
@@ -441,7 +450,7 @@ SkudAIv1.prototype.getTilePile = function(game, player) {
 	return tilePile;
 };
 
-SkudAIv1.prototype.isOpenGate = function(game) {
+SkudAIv2.prototype.isOpenGate = function(game) {
 	var cells = game.board.cells;
 	for (var row = 0; row < cells.length; row++) {
 		for (var col = 0; col < cells[row].length; col++) {
@@ -452,38 +461,38 @@ SkudAIv1.prototype.isOpenGate = function(game) {
 	}
 };
 
-SkudAIv1.prototype.getOpponent = function() {
+SkudAIv2.prototype.getOpponent = function() {
 	if (this.player === GUEST) {
 		return HOST;
 	}
 	return GUEST;
 };
 
-SkudAIv1.prototype.getNumHarmoniesForPlayer = function(game, player) {
+SkudAIv2.prototype.getNumHarmoniesForPlayer = function(game, player) {
 	return game.board.harmonyManager.numHarmoniesForPlayer(player);
 };
 
-SkudAIv1.prototype.getNumTilesInGardensForPlayer = function(game, player) {
+SkudAIv2.prototype.getNumTilesInGardensForPlayer = function(game, player) {
 	return game.board.numTilesInGardensForPlayer(player);
 };
 
-SkudAIv1.prototype.getNumTilesOnBoardForPlayer = function(game, player) {
+SkudAIv2.prototype.getNumTilesOnBoardForPlayer = function(game, player) {
 	return game.board.numTilesOnBoardForPlayer(player);
 };
 
-SkudAIv1.prototype.getSurroundness = function(game, player) {
+SkudAIv2.prototype.getSurroundness = function(game, player) {
 	return game.board.getSurroundness(player);
 };
 
-SkudAIv1.prototype.getLongestHarmonyRingLength = function(game, player) {
+SkudAIv2.prototype.getLongestHarmonyRingLength = function(game, player) {
 	return game.board.harmonyManager.ringLengthForPlayer(player);
 };
 
-SkudAIv1.prototype.getNumHamoniesCrossingCenter = function(game, player) {
+SkudAIv2.prototype.getNumHamoniesCrossingCenter = function(game, player) {
 	return game.board.harmonyManager.getNumCrossingCenterForPlayer(player);
 };
 
-SkudAIv1.prototype.ensurePlant = function(move, game, player) {
+SkudAIv2.prototype.ensurePlant = function(move, game, player) {
 	if (move.moveType !== ARRANGING) {
 		return;
 	}

@@ -5,9 +5,15 @@ function VagabondTileManager() {
 	this.guestTiles = this.loadTileSet('G');
 }
 
+/**
+ * Loads a tileset for a player specified by the input ownerCode.
+ *
+ * @param  char ownerCode the code of the player (e.g. 'H' for the host player)
+ *
+ * @return array the array of tiles for the specified player
+ */
 VagabondTileManager.prototype.loadTileSet = function(ownerCode) {
 	var tiles = [];
-
 	this.addTiles(tiles, ownerCode);
 
 	if (gameOptionEnabled(OPTION_DOUBLE_TILES)) {
@@ -20,6 +26,12 @@ VagabondTileManager.prototype.loadTileSet = function(ownerCode) {
 	return tiles;
 };
 
+/**
+ * Adds tiles to a tile array for a player specified by the input ownerCode.
+ *
+ * @param  array the array of tiles to add tiles to
+ * @param  char ownerCode the code of the player (e.g. 'H' for the host player)
+ */
 VagabondTileManager.prototype.addTiles = function(tiles, ownerCode) {
 	// 2 of each of these tiles
 	for (var i = 0; i < 2; i++) {

@@ -663,7 +663,7 @@ SkudPaiShoController.prototype.startAiGame = function(finalizeMove) {
 };
 
 SkudPaiShoController.prototype.getAiList = function() {
-	return [new SkudAIv1()];
+	return [new SkudAIv1(), new SkudAIv2()];
 };
 
 SkudPaiShoController.prototype.getCurrentPlayer = function() {

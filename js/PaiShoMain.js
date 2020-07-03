@@ -928,12 +928,11 @@ function linkShortenCallback(shortUrl, ignoreNoEmail) {
 
 		if (aiList.length > 0) {
 			for (var i = 0; i < aiList.length; i++) {
-				messageText += "<span class='skipBonus' onclick='setAiIndex(" + i + ");'>Play " + aiList[i].getName() + "</span>";
+				messageText += "<span class='skipBonus' onclick='setAiIndex(" + i + ");'>Play " + aiList[i].getName() + "<br></span>";
 			}
 			if (aiList.length > 1) {
-				messageText += "<span class='skipBonus' onclick='goai();'>AI vs AI</span>";
+				messageText += "<span class='skipBonus' onclick='goai();'>AI vs AI<br /></span>";
 			}
-			messageText += "<br />";
 		}
 	} else if (haveBothEmails()) {
 		if (!metadata.tournamentName && !playingOnlineGame()) {
