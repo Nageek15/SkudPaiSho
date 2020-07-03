@@ -25,7 +25,7 @@ SkudAIv2.prototype.getMessage = function() {
 
 SkudAIv2.prototype.rset = function(){
 	this.strategy=new KStrategy(this);
-}
+};
 
 SkudAIv2.prototype.setPlayer = function(playerName) {
 	this.player = playerName;

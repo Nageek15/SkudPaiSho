@@ -40,14 +40,20 @@ KStrategy.prototype.calculateScore = function(origGame, copyGame) {
 		score -= 20;
 	}
 
-	// Harmonies that cross the center are better!
-	before = this.observer.getNumHamoniesCrossingCenter(origGame, this.observer.player);
-	after = this.observer.getNumHamoniesCrossingCenter(copyGame, this.observer.player);
-
+	// Harmonies that cross the center and are better!
+	before = this.observer.getNumHamoniesCrossingCenterButNotAlong(origGame, this.observer.player);
+	after = this.observer.getNumHamoniesCrossingCenterButNotAlong(copyGame, this.observer.player);
+	
 	if (after > before) {
-		score += 50;
+		score += 10;
+		if (this.stance===0){
+			score+=5;
+		}
 	} else if (after < before) {
-		score -= 20;
+		score -= 50;
+		if (this.stance===0){
+			score-=5;
+		}
 	}
 
 	// Check number of opponent harmonies, decrease is good
@@ -189,8 +195,7 @@ KStrategy.prototype.calculatePlantScore = function(move,game,player,boardTiles,g
 	if (move.moveType!==PLANTING){
 		return 0;
 	}
-	
-	if (boardTiles.length>0){
+	if (boardTiles.length>1){
 		var factor=6;
 		var tileCodes=this.observer.getTileCodesInPlay(game,player);
 		if (tileCodes.length===2){
@@ -207,6 +212,14 @@ KStrategy.prototype.calculatePlantScore = function(move,game,player,boardTiles,g
 		}
 		factor-=gateTiles.length*2;
 		return this.observer.getHarmonizableTilesOnField(move.plantedFlowerType,game,player).length*factor;
+	} else if (boardTiles.length==1){
+		var tileCodes=this.observer.getTileCodesInPlay(game,player);
+		//we want 2 tiles on the board that harmonize
+		if (this.observer.tilesHarmonizable(tileCodes[0],move.plantedFlowerType,player)){
+			return 100;
+		} else {
+			return 0;
+		};
 	} else {
 		//no tiles are on the field so... for one thing planting type moves are the only type possible and we don't need to bother with getting the number of harmonizable tiles on the field because there aren't any.
 		//all planting moves in this.observer state have equal point values (well, unless it's trying to use the wheel of harmony strategy but we're not quite there yet)

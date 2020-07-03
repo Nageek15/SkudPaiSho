@@ -941,9 +941,12 @@ function linkShortenCallback(shortUrl, ignoreNoEmail) {
 		if (!playingOnlineGame()) {
 			showSubmitMoveForm(shortUrl);
 		}
-	} else if ((activeAi && getCurrentPlayer() === activeAi.player) || (activeAi2 && getCurrentPlayer() === activeAi2.player)) {
+	} else if ((activeAi && getCurrentPlayer() === activeAi.player)) {
 		//messageText += "<span class='skipBonus' onclick='playAiTurn();'>Submit move to AI</span>";
-		messageText += "<em>THINKING...</em>";
+		messageText += activeAi.getName()+":<br><em>THINKING...</em>";
+	} else if ((activeAi2 && getCurrentPlayer() === activeAi2.player)) {
+			//messageText += "<span class='skipBonus' onclick='playAiTurn();'>Submit move to AI</span>";
+		messageText += activeAi2.getName()+":<br><em>THINKING...</em>";
 	} else if (activeAi && activeAi.getMessage) {
 		messageText += activeAi.getMessage();
 	}

@@ -12,6 +12,8 @@ function SkudPaiShoTile(code, ownerCode) {
 		this.ownerName = GUEST;
 	} else if (this.ownerCode === 'H') {
 		this.ownerName = HOST;
+	} else if (this.ownerCode === GUEST || this.ownerCode === HOST) {
+		//it's fine
 	} else {
 		debug("INCORRECT OWNER CODE");
 	}

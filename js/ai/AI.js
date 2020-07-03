@@ -20,9 +20,7 @@ function AI(strategy){
 
 AI.prototype.rset = function(){
 	this.strategy=new Strategy(this);
-}
-
-AI.prototype = Object.create(AI.prototype);
+};
 
 AI.prototype.getName = function() {
 	return "Skud Pai Sho automatic opponent";
@@ -58,7 +56,7 @@ AI.prototype.getMove = function(game, moveNum) {
 		// 	goodScore = score;
 		// 	goodMove = move;
 		// }
-		var scores = this.getMoveScore(game, move, this.scoreDepth);
+		var scores = this.getMoveScore(game, move, this.scoreDepth,boardTiles,gateTiles);
 		if (scores.get(this.scoreDepth) > 9999) {
 			return move;
 		}
@@ -69,6 +67,9 @@ AI.prototype.getMove = function(game, moveNum) {
 	}
 
 	if (goodMove) {
+		if (goodMove.moveType===PLANTING){
+			debug("Chose a planting move");
+		}
 		// debug("Score: " + goodScore);
 		this.ensurePlant(goodMove, game, this.player,boardTiles,gateTiles);
 		return goodMove;
@@ -92,7 +93,7 @@ AI.prototype.scoreIsGood = function(scores, goodScores, depth) {
 	}
 };
 
-AI.prototype.getMoveScore = function(origGame, move, depth) {
+AI.prototype.getMoveScore = function(origGame, move, depth,boardTiles,gateTiles) {
 	debug("Depth: " + depth);
 	
 	var copyGame = origGame.getCopy();
@@ -102,8 +103,12 @@ AI.prototype.getMoveScore = function(origGame, move, depth) {
 
 	// var score = this.calculateScore(origGame, copyGame) * multiplier;
 	var score = new Map();
-	score.set(depth, this.calculateScore(origGame, copyGame));
-
+	if (move.moveType === PLANTING){
+		debug("Checking planting");
+		score.set(depth, this.calculatePlantScore(move,origGame,this.player,boardTiles,gateTiles));
+	} else {
+		score.set(depth, this.calculateScore(origGame, copyGame));
+	}
 	if (score > 99999) {
 		return score;
 	// } else if (score > this.greatScoreThreshold * multiplier) {
