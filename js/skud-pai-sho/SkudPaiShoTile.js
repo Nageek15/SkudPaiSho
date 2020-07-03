@@ -221,6 +221,7 @@ SkudPaiShoTile.getClashTileCode = function(tileCode) {
 		}
 	}
 };
+	
 
 // Tile.getTileHeading = function(tileCode) {
 // 	var heading = Tile.getTileName(tileCode);

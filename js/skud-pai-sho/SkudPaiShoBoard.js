@@ -1964,4 +1964,44 @@ SkudPaiShoBoard.prototype.getSurroundness = function(player) {
 	}
 };
 
+/** Returns the  center zone, quadrant, or centerline zone that the point lies on
+* Center zone (0,0): 0
+* Quadrants: 1-4 going clockwise and starting at the top right of the board
+* Centerline zones: 5-8 going clockwise starting at the positive side of the y axis.
+*
+* @param NotationPoint point
+*/
+SkudPaiShoBoard.prototype.getZone = function(point){
+	var row=point.row;
+	var col=point.col;
+	if (row===8&&col===8){
+		//point is in center
+		return 0;
+	} else if (row<8&&col>8){
+		//point is in upper right quadrant
+		return 1;
+	} else if (row>8&&col>8){
+		//point is in lower right quadrant
+		return 2;
+	} else if (row>8&&col<8){
+		//point is in lower left quadrant
+		return 3
+	} else if (row<8&&col<8){
+		//point is in upper left quadrant
+		return 4
+	} else if (row<8&&col===8){
+		//point is on positive side of y axis
+		return 5;
+	} else if (row===8&&col>8){
+		//point is on positive side of x axis
+		return 6;
+	} else if (row>8&&col===8){
+		//point is on negative side of y axis
+		return 7;
+	} else if (row===8&&col<8){
+		//point is on negative side of x axis
+		return 8;
+	}
+};
+
 

@@ -618,6 +618,10 @@ SkudPaiShoController.prototype.playAiTurn = function(finalizeMove) {
 
 	var playerMoveNum = this.gameNotation.getPlayerMoveNum();
 
+	if (playerMoveNum === 0){
+		theAi.rset();
+	}
+	
 	if (playerMoveNum === 1 && getCurrentPlayer() === HOST) {
 		// Auto mirror guest move
 		// Host auto-copies Guest's first Plant
@@ -663,7 +667,7 @@ SkudPaiShoController.prototype.startAiGame = function(finalizeMove) {
 };
 
 SkudPaiShoController.prototype.getAiList = function() {
-	return [new SkudAIv1(), new SkudAIv2()];
+	return [new AI(), new SkudAIv2()];
 };
 
 SkudPaiShoController.prototype.getCurrentPlayer = function() {
