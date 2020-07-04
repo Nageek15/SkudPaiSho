@@ -1,47 +1,33 @@
-// AI
+// SkudAIv1
 
-function AI() {
+function SkudAIv1() {
 	this.scoreDepth = 1;	// This can't go higher than 1... Or can it?
 	this.greatScoreThreshold = new Map();
 	this.greatScoreThreshold.set(2, 9);
 	this.greatScoreThreshold.set(1, 18);
 	this.greatScoreThreshold.set(0, 16);
-	this.strategy=new Strategy(this);
 }
 
-function AI(strategy){
-	this.scoreDepth = 1;	// This can't go higher than 1... Or can it?
-	this.greatScoreThreshold = new Map();
-	this.greatScoreThreshold.set(2, 9);
-	this.greatScoreThreshold.set(1, 18);
-	this.greatScoreThreshold.set(0, 16);
-	this.strategy=strategy;
-}
-
-AI.prototype.rset = function(){
-	this.strategy=new Strategy(this);
-};
-
-AI.prototype.getName = function() {
+SkudAIv1.prototype.getName = function() {
 	return "Skud Pai Sho automatic opponent";
 };
 
-AI.prototype.getMessage = function() {
-	return "Playing against the computer can help you learn how the game works. You should be able to beat the computer easily once you understand the game.<br>";
+SkudAIv1.prototype.getMessage = function() {
+	return "Playing against the computer can help you learn how the game works. You should be able to beat the computer easily once you understand the game.";
 };
 
-AI.prototype.setPlayer = function(playerName) {
+SkudAIv1.prototype.rset = function(){};
+
+SkudAIv1.prototype.setPlayer = function(playerName) {
 	this.player = playerName;
 };
 
 /* parameters will be copies of the real thing, so you can't mess up the real game. */
-AI.prototype.getMove = function(game, moveNum) {
+SkudAIv1.prototype.getMove = function(game, moveNum) {
 	this.moveNum = moveNum;
 
 	var moves = this.getPossibleMoves(game, this.player);
 
-	var boardTiles = this.getBoardTiles(game,this.player);
-	var gateTiles = this.getGateTiles(game,this.player);
 	// Process moves to get the best one...
 	// What makes a good move? Should I go through all moves and "score" them somehow?
 
@@ -56,7 +42,7 @@ AI.prototype.getMove = function(game, moveNum) {
 		// 	goodScore = score;
 		// 	goodMove = move;
 		// }
-		var scores = this.getMoveScore(game, move, this.scoreDepth,boardTiles,gateTiles);
+		var scores = this.getMoveScore(game, move, this.scoreDepth);
 		if (scores.get(this.scoreDepth) > 9999) {
 			return move;
 		}
@@ -67,11 +53,8 @@ AI.prototype.getMove = function(game, moveNum) {
 	}
 
 	if (goodMove) {
-		if (goodMove.moveType===PLANTING){
-			debug("Chose a planting move");
-		}
 		// debug("Score: " + goodScore);
-		this.ensurePlant(goodMove, game, this.player,boardTiles,gateTiles);
+		this.ensurePlant(goodMove, game, this.player);
 		return goodMove;
 	}
 
@@ -81,7 +64,7 @@ AI.prototype.getMove = function(game, moveNum) {
 	return randomMove;
 };
 
-AI.prototype.scoreIsGood = function(scores, goodScores, depth) {
+SkudAIv1.prototype.scoreIsGood = function(scores, goodScores, depth) {
 	if (depth <= 0) {
 		debug("SCORE IS GOOD")
 		return true;
@@ -93,7 +76,7 @@ AI.prototype.scoreIsGood = function(scores, goodScores, depth) {
 	}
 };
 
-AI.prototype.getMoveScore = function(origGame, move, depth,boardTiles,gateTiles) {
+SkudAIv1.prototype.getMoveScore = function(origGame, move, depth) {
 	debug("Depth: " + depth);
 	
 	var copyGame = origGame.getCopy();
@@ -103,12 +86,8 @@ AI.prototype.getMoveScore = function(origGame, move, depth,boardTiles,gateTiles)
 
 	// var score = this.calculateScore(origGame, copyGame) * multiplier;
 	var score = new Map();
-	/*if (move.moveType === PLANTING){
-		debug("Checking planting");
-		score.set(depth, this.calculatePlantScore(move,origGame,this.player,boardTiles,gateTiles));
-	} else {*/
-		score.set(depth, this.calculateScore(origGame, copyGame));
-	//}
+	score.set(depth, this.calculateScore(origGame, copyGame));
+
 	if (score > 99999) {
 		return score;
 	// } else if (score > this.greatScoreThreshold * multiplier) {
@@ -119,7 +98,7 @@ AI.prototype.getMoveScore = function(origGame, move, depth,boardTiles,gateTiles)
 	}
 };
 
-AI.prototype.getHighestScore = function(origGame, newGame, highScore, depth) {
+SkudAIv1.prototype.getHighestScore = function(origGame, newGame, highScore, depth) {
 	// magic
 
 	if (depth <= 0) {
@@ -151,7 +130,113 @@ AI.prototype.getHighestScore = function(origGame, newGame, highScore, depth) {
 	return highScore;
 };
 
-AI.prototype.getPossibleMoves = function(thisGame, player) {
+SkudAIv1.prototype.calculateScore = function(origGame, copyGame) {
+	// Simple move scoring...
+	var score = 0;
+
+	// var copyGame = origGame.getCopy();
+	// copyGame.runNotationMove(move);
+
+	// Check for win! Win is good!
+	if (copyGame.board.winners.includes(this.player) || origGame.board.winners.includes(this.player)) {
+		return 9999999;
+	}
+
+	var opponent = this.getOpponent();
+
+	// Check number of my harmonies, increase is good.
+	var before = this.getNumHarmoniesForPlayer(origGame, this.player);
+	var after = this.getNumHarmoniesForPlayer(copyGame, this.player);
+
+	var moreHarmonies = after > before;
+	if (after > before) {
+		score += 20;
+	} else if (after < before) {
+		score -= 20;
+	}
+
+	// Harmonies that cross the center are better!
+	before = this.getNumHamoniesCrossingCenter(origGame, this.player);
+	after = this.getNumHamoniesCrossingCenter(copyGame, this.player);
+
+	if (after > before) {
+		score += 50;
+	} else if (after < before) {
+		score -= 20;
+	}
+
+	// Check number of opponent harmonies, decrease is good
+	before = this.getNumHarmoniesForPlayer(origGame, opponent);
+	after = this.getNumHarmoniesForPlayer(copyGame, opponent);
+
+	var opponentLessHarmonies = after < before;
+	if (after < before) {
+		score += 3;
+	} else if (after > before) {
+		score -= 7;
+	}
+
+	// Check tiles in red/white gardens, increase is good
+	before = this.getNumTilesInGardensForPlayer(origGame, this.player);
+	after = this.getNumTilesInGardensForPlayer(copyGame, this.player);
+
+	var moreHomeTiles = after > before;
+	if (after > before) {
+		score += 10;
+	} else if (after < before) {
+		score -= 10;
+	}
+
+	// If opponent has less tiles, that is good
+	before = this.getNumTilesOnBoardForPlayer(origGame, opponent);
+	after = this.getNumTilesOnBoardForPlayer(copyGame, opponent);
+
+	var opponentLessTiles = after < before;
+	if (after < before) {
+		score += 8;
+	}
+
+	// Tiles on left/right/top/bottom of center
+	// "Surroundness" - we want to maintain it
+	// before = this.getSurroundness(origGame, this.player);
+	var surroundness = this.getSurroundness(copyGame, this.player);
+	before = this.getSurroundness(origGame, this.player);
+
+	var maxSurroundness = surroundness > 3;
+	if (surroundness > before) {
+		score += surroundness;
+	}
+
+	// Harmony ring length is good if we do it right
+	if (surroundness > 3) {
+		before = this.getLongestHarmonyRingLength(origGame, this.player);
+		if (before < 5) {
+			after = this.getLongestHarmonyRingLength(copyGame, this.player);
+
+			if (after > before) {
+				score += 5;
+			} else if (after < before) {
+				score -= 2;
+			}
+		} else {
+			score += 5;
+		}
+	}
+
+	// Plant tile that can harmonize with tile on board? Good
+	// TODO
+	before = this.getNumTilesOnBoardForPlayer(origGame, this.player);
+	after = this.getNumTilesOnBoardForPlayer(copyGame, this.player);
+
+	if (after > before) {
+		score += 5;
+	}
+
+	// return score / ((this.scoreDepth - depth) + 1);
+	return score;
+};
+
+SkudAIv1.prototype.getPossibleMoves = function(thisGame, player) {
 	var moves = [];
 
 	if (this.moveNum === 0) {
@@ -164,7 +249,7 @@ AI.prototype.getPossibleMoves = function(thisGame, player) {
 	return moves;
 };
 
-AI.prototype.addAccentSelectionMoves = function(moves, game) {
+SkudAIv1.prototype.addAccentSelectionMoves = function(moves, game) {
 	/* Status: Random, working
 	*/
 
@@ -196,7 +281,7 @@ AI.prototype.addAccentSelectionMoves = function(moves, game) {
 	moves.push(move);
 };
 
-AI.prototype.addPlantMoves = function(moves, game, player) {
+SkudAIv1.prototype.addPlantMoves = function(moves, game, player) {
 	if (!this.isOpenGate(game)) {
 		return;
 	}
@@ -242,7 +327,7 @@ AI.prototype.addPlantMoves = function(moves, game, player) {
 	}
 };
 
-AI.prototype.addArrangeMoves = function(moves, game, player) {
+SkudAIv1.prototype.addArrangeMoves = function(moves, game, player) {
 	var startPoints = this.getStartPoints(game, player);
 
 	for (var i = 0; i < startPoints.length; i++) {
@@ -278,7 +363,7 @@ AI.prototype.addArrangeMoves = function(moves, game, player) {
 	}
 };
 
-AI.prototype.getCurrentPlayerForGame = function(game, notation) {
+SkudAIv1.prototype.getCurrentPlayerForGame = function(game, notation) {
 	if (notation.moves.length <= 1) {
 		if (notation.moves.length === 0) {
 			return HOST;
@@ -298,11 +383,11 @@ AI.prototype.getCurrentPlayerForGame = function(game, notation) {
 	}
 };
 
-AI.prototype.getNotation = function(boardPoint) {
+SkudAIv1.prototype.getNotation = function(boardPoint) {
 	return new RowAndColumn(boardPoint.row, boardPoint.col).notationPointString;
 };
 
-AI.prototype.getStartPoints = function(game, player) {
+SkudAIv1.prototype.getStartPoints = function(game, player) {
 	var points = [];
 	for (var row = 0; row < game.board.cells.length; row++) {
 		for (var col = 0; col < game.board.cells[row].length; col++) {
@@ -319,7 +404,7 @@ AI.prototype.getStartPoints = function(game, player) {
 	return points;
 };
 
-AI.prototype.getPossibleMovePoints = function(game) {
+SkudAIv1.prototype.getPossibleMovePoints = function(game) {
 	var points = [];
 	for (var row = 0; row < game.board.cells.length; row++) {
 		for (var col = 0; col < game.board.cells[row].length; col++) {
@@ -331,20 +416,7 @@ AI.prototype.getPossibleMovePoints = function(game) {
 	return points;
 };
 
-AI.prototype.getBoardTiles = function(game,player) {
-	var tiles = [];
-	for (var row = 0; row < game.board.cells.length; row++) {
-		for (var col = 0; col < game.board.cells[row].length; col++) {
-			var startPoint = game.board.cells[row][col];
-			if (startPoint.hasTile() && startPoint.tile.ownerName === player) {
-				tiles.push(startPoint.tile);
-			}
-		}
-	}
-	return tiles;
-}
-
-AI.prototype.getBasicFlowerTileCode = function(game) {
+SkudAIv1.prototype.getBasicFlowerTileCode = function(game) {
 	var tilePile = this.getTilePile(game);
 	for (var i = 0; i < tilePile.length; i++) {
 		if (tilePile[i].type === BASIC_FLOWER) {
@@ -353,17 +425,8 @@ AI.prototype.getBasicFlowerTileCode = function(game) {
 	};
 };
 
-AI.prototype.tileContainsTileCode = function(tileCode,tilePile) {
-	for (var i = 0; i < tilePile.length; i++) {
-		if (tilePile[i].code === tileCode) {
-			return true;
-		}
-	};
-	return false;
-};
 
-
-AI.prototype.tileContainsBasicFlower = function(tilePile) {
+SkudAIv1.prototype.tileContainsBasicFlower = function(tilePile) {
 	for (var i = 0; i < tilePile.length; i++) {
 		if (tilePile[i].type === BASIC_FLOWER) {
 			return true;
@@ -372,7 +435,7 @@ AI.prototype.tileContainsBasicFlower = function(tilePile) {
 	return false;
 };
 
-AI.prototype.getTilePile = function(game, player) {
+SkudAIv1.prototype.getTilePile = function(game, player) {
 	var tilePile = game.tileManager.hostTiles;
 	if (player === GUEST) {
 		tilePile = game.tileManager.guestTiles;
@@ -380,7 +443,7 @@ AI.prototype.getTilePile = function(game, player) {
 	return tilePile;
 };
 
-AI.prototype.isOpenGate = function(game) {
+SkudAIv1.prototype.isOpenGate = function(game) {
 	var cells = game.board.cells;
 	for (var row = 0; row < cells.length; row++) {
 		for (var col = 0; col < cells[row].length; col++) {
@@ -391,97 +454,64 @@ AI.prototype.isOpenGate = function(game) {
 	}
 };
 
-AI.prototype.getOpponent = function() {
+SkudAIv1.prototype.getOpponent = function() {
 	if (this.player === GUEST) {
 		return HOST;
 	}
 	return GUEST;
 };
 
-AI.prototype.getNumHarmoniesForPlayer = function(game, player) {
+SkudAIv1.prototype.getNumHarmoniesForPlayer = function(game, player) {
 	return game.board.harmonyManager.numHarmoniesForPlayer(player);
 };
 
-AI.prototype.getNumTilesInGardensForPlayer = function(game, player) {
+SkudAIv1.prototype.getNumTilesInGardensForPlayer = function(game, player) {
 	return game.board.numTilesInGardensForPlayer(player);
 };
 
-AI.prototype.getNumTilesOnBoardForPlayer = function(game, player) {
+SkudAIv1.prototype.getNumTilesOnBoardForPlayer = function(game, player) {
 	return game.board.numTilesOnBoardForPlayer(player);
 };
 
-AI.prototype.getSurroundness = function(game, player) {
+SkudAIv1.prototype.getSurroundness = function(game, player) {
 	return game.board.getSurroundness(player);
 };
 
-AI.prototype.getLongestHarmonyRingLength = function(game, player) {
+SkudAIv1.prototype.getLongestHarmonyRingLength = function(game, player) {
 	return game.board.harmonyManager.ringLengthForPlayer(player);
 };
 
-AI.prototype.getNumHamoniesCrossingCenter = function(game, player) {
+SkudAIv1.prototype.getNumHamoniesCrossingCenter = function(game, player) {
 	return game.board.harmonyManager.getNumCrossingCenterForPlayer(player);
 };
 
-AI.prototype.getNumHamoniesCrossingCenterButNotAlong = function(game, player) {
-	return game.board.harmonyManager.getNumCrossingCenterButNotAlongForPlayer(player);
-};
-
-AI.prototype.ensurePlant = function(move, game, player,boardTiles,gateTiles) {
-	this.strategy.ensurePlant(move, game, this.player,boardTiles,gateTiles);
-};
-
-AI.prototype.calculateScore = function(origGame, copyGame) {
-	this.strategy.calculateScore(origGame,copyGame);
-};
-
-AI.prototype.calculatePlantScore = function(move, game, player,boardTiles,gateTiles) {
-	this.strategy.calculatePlantScore(move, game, player,boardTiles,gateTiles);
-};
-
-AI.prototype.tilesHarmonizable = function(tileCode,otherTileCode,player){
-	return new SkudPaiShoTile(tileCode,player).formsHarmonyWith(new SkudPaiShoTile(otherTileCode,player),false);
-};
-
-AI.prototype.getGateTiles = function(game,player) {
-	var tiles = [];
-	for (var row = 0; row < game.board.cells.length; row++) {
-		for (var col = 0; col < game.board.cells[row].length; col++) {
-			var startPoint = game.board.cells[row][col];
-			if (startPoint.hasTile() && startPoint.tile.ownerName === player && startPoint.isType(GATE)) {
-				tiles.push(startPoint.tile);
-			}
-		}
+SkudAIv1.prototype.ensurePlant = function(move, game, player) {
+	if (move.moveType !== ARRANGING) {
+		return;
 	}
-	return tiles;
-};
 
-AI.prototype.getHarmonizableTilesOnField = function(tileCode,game,player){
-	var boardTiles = this.getBoardTiles(game,player);
-	var harmonizableTiles = [];
-	for (var i = 0; i < boardTiles.length; i++) {
-		if (this.tilesHarmonizable(tileCode,boardTiles[i].code)) {
-			harmonizableTiles.push(boardTiles[i]);
-		}
-	};
-	return harmonizableTiles;
-};
-
-AI.prototype.getTileCodesInPlay = function(game,player){
-	boardTiles = this.getBoardTiles(game,player);
-	tileCodes = [];
-	for (var i = 0; i<boardTiles.length; i++){
-		if (this.tileContainsTileCode(boardTiles[i].code, boardTiles)){
-			var duplicate=false;
-			for (var j = 0; j<tileCodes.length; j++) {
-				if (tileCodes[j]===boardTiles[i].code){
-					duplicate=true;
-					break;
-				}
-			}
-			if (!duplicate){
-				tileCodes.push(boardTiles[i].code);
-			}
-		}
+	if (move.bonusTileCode) {
+		return;
 	}
-	return tileCodes;
+
+	var moves = [];
+	this.addPlantMoves(moves, game, player);
+
+	var randomIndex = Math.floor(Math.random() * moves.length);
+	var randomMove = moves.splice(randomIndex, 1)[0];
+
+	if (!randomMove) {
+		return;
+	}
+
+	move.bonusTileCode = randomMove.plantedFlowerType;
+
+	game.revealOpenGates(player, null, 5, true);
+	var endPoints = this.getPossibleMovePoints(game);
+
+	randomIndex = Math.floor(Math.random() * endPoints.length);
+	var randomEndPoint = endPoints.splice(randomIndex, 1)[0];
+
+	move.bonusEndPoint = "(" + this.getNotation(randomEndPoint) + ")";
+	move.fullMoveText += "+" + move.bonusTileCode + move.bonusEndPoint;
 };

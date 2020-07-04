@@ -216,7 +216,8 @@ KStrategy.prototype.calculatePlantScore = function(move,game,player,boardTiles,g
 		var tileCodes=this.observer.getTileCodesInPlay(game,player);
 		//we want 2 tiles on the board that harmonize
 		if (this.observer.tilesHarmonizable(tileCodes[0],move.plantedFlowerType,player)){
-			return 100;
+			debug("I really want to plant a harmonizing tile");
+			return 9997;
 		} else {
 			return 0;
 		};
